@@ -1,0 +1,228 @@
+
+#################################### Iglesias de París ######################################
+String queryString=
+                "PREFIX p: <http://dbpedia.org/property/>"+
+                        "PREFIX dbpedia: <http://dbpedia.org/resource/>"+
+                        "PREFIX category: <http://dbpedia.org/resource/Category:>"+
+                        "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>"+
+                        "PREFIX skos: <http://www.w3.org/2004/02/skos/core#>"+
+                        "PREFIX geo: <http://www.georss.org/georss/>"+
+
+                        "SELECT DISTINCT ?m ?n ?p ?d"+
+                        "WHERE {"+
+                        " ?m rdfs:label ?n."+
+                        " ?m skos:subject ?c."+
+                        " ?c skos:broader category:Churches_in_Paris."+
+                        " ?m p:abstract ?d."+
+                        " ?m geo:point ?p" +
+//                        " FILTER ( lang(?n) = "fr" )"+
+//                " FILTER ( lang(?d) = "fr" )"+
+                " }";
+
+#################################### Bandas de punk-rock ######################################
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX dbp: <http://dbpedia.org/resource/>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+
+SELECT ?name ?bandname where {
+    ?person foaf:name ?name .
+    ?band dbo:bandMember ?person .
+    ?band dbo:genre dbp:Punk_rock .
+    ?band foaf:name ?bandname .
+}
+
+
+#################################### Novelas de George Orwell completo ######################################
+
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX dbr: <http://dbpedia.org/resource/>
+SELECT * WHERE {
+    ?book dbo:author dbr:George_Orwell .
+}
+
+#################################### Novelas de George Orwell filtrado (No funciona) ######################################
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX dbr: <http://dbpedia.org/resource/>
+
+SELECT ?publisher ?isbn ?title WHERE {
+
+    ?book dbo:author dbr:George_Orwell .
+    ?book dbo:publisher ?publisher .
+    ?book dbo:isbn ?isbn .
+    ?book dbo:title ?title .
+
+}
+
+#################################### Query muy simple ######################################
+SELECT *
+WHERE
+     {
+        ?s ?p ?o
+     }
+LIMIT 10
+
+#################################### Query muy simple 2 ######################################
+SELECT *
+WHERE
+     {
+        ?athlete rdfs:label "Cristiano Ronaldo"@en
+     }
+
+#################################### Query muy simple 3 ######################################
+SELECT *
+WHERE
+{
+  ?athlete rdfs:label "Cristiano Ronaldo"@en;
+   dbo:number ?number;
+   dbo:birthPlace ?place.
+}
+
+#################################### Query muy simple 4 (Es necesario filtrar por idioma) ######################################
+SELECT *
+WHERE
+{
+  ?athlete rdfs:label "Cristiano Ronaldo"@en;
+   dbo:birthPlace ?place.
+   ?place a dbo:City;
+   rdfs:label ?cityName.
+}
+
+#################################### Query muy simple 5 (Filtrado por idioma) ######################################
+SELECT *
+WHERE
+{
+  ?athlete rdfs:label "Cristiano Ronaldo"@en;
+   dbo:birthPlace ?place.
+  ?place a dbo:City;
+   rdfs:label ?cityName.
+  FILTER(lang(?cityName) = 'en')
+}
+
+#################################### Query muy simple 6 ######################################
+SELECT *
+WHERE
+{
+  ?athlete rdfs:label "Cristiano Ronaldo"@en;
+   dbo:birthPlace ?place.
+  ?place a dbo:City;
+   rdfs:label ?cityName.
+  FILTER(lang(?cityName) = 'en')
+}
+
+#################################### Primer intento ######################################
+
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX dbp: <http://dbpedia.org/property/>
+PREFIX dbr: <http://dbpedia.org/resource/>
+
+SELECT distinct * WHERE {
+          # Obligatorio
+    ?book dbo:author ?author ;
+          dbp:title ?title .
+
+          # Opcional
+          OPTIONAL { ?book dbo:publisher ?publisher }
+          OPTIONAL { ?book dbo:isbn ?isbn }
+          OPTIONAL { ?book dbp:genre ?genre }
+          OPTIONAL { ?book dbp:serial ?serial }
+          OPTIONAL { ?book dbo:numberOfPages ?numberOfPages }
+}
+
+#################################### Segundo intento (comportamiento extraño) ######################################
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX dbp: <http://dbpedia.org/property/>
+PREFIX dbr: <http://dbpedia.org/resource/>
+
+
+SELECT distinct * WHERE {
+          # Obligatorio
+    ?book dbo:author|dbp:author ?author ;
+          dbo:title|dbp:title ?title .
+
+          # Opcional
+          OPTIONAL { ?book dbo:publisher|dbp:publisher ?publisher }
+          OPTIONAL { ?book dbo:isbn|dbp:isbn ?isbn }
+          OPTIONAL { ?book dbo:genre|dbp:genre ?genre }
+          OPTIONAL { ?book dbp:serial|dbp:serial ?serial }
+          OPTIONAL { ?book dbo:numberOfPages|dbp:numberOfPages ?numberOfPages }
+
+}
+
+#################################### Tercer intento ######################################
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX dbp: <http://dbpedia.org/property/>
+PREFIX dbr: <http://dbpedia.org/resource/>
+
+SELECT distinct * WHERE {
+          # Obligatorio
+          { ?book dbo:author ?author } UNION { ?book dbp:author ?author } .
+          { ?book dbo:title ?title } UNION { ?book dbp:title ?title }
+
+}
+
+#################################### PREFIXES ##########################################################
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+
+#################################### LISTAR TODOS LOS PREDICADOS #######################################
+
+
+SELECT DISTINCT ?predicate {
+    ?s ?predicate ?o
+}
+ORDER BY ?predicate
+
+#################################### Intento (fallido) de NIF #######################################
+
+SELECT DISTINCT ?p ?label
+ WHERE{
+  ?s ?p ?o .
+  FILTER (REGEX(STR(?p), "nif", "i")) .
+  ?p rdfs:label ?label .
+}
+ORDER BY ?p
+
+#################################### list predicates declared with RDF Schema #######################################
+
+SELECT distinct ?label ?predicate  {
+    ?predicate a rdf:Property
+    OPTIONAL { ?predicate rdfs:label ?label }
+}
+ORDER BY ?predicate
+
+#################################### list predicates declared with OWL #######################################
+
+SELECT ?predicate ?type {
+    VALUES ?type { owl:ObjectProperty owl:DatatypeProperty owl:AnnotationProperty }
+    ?predicate a ?type
+}
+ORDER BY ?predicate
+
+################################### Obtener labels también ###################################
+
+SELECT ?predicate ?label {
+    ?predicate a rdf:Property
+    OPTIONAL { ?predicate rdfs:label ?label }
+}
+ORDER BY ?predicate
+
+################################## Filtro adicional #####################################
+
+FILTER regex(str(?predicate), 'rdfs', 'i')
+
+################################## Titulo rdf (funciona) ######################################
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT distinct ?predicate where {
+    ?predicate a rdf:Property
+    OPTIONAL { ?predicate rdfs:label ?label }
+
+FILTER regex(str(?predicate), 'title', 'i')
+}
+ORDER BY ?predicate
+
+
+
