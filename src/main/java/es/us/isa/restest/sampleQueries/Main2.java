@@ -9,9 +9,10 @@ public class Main2 {
 
     public static void main(String[] args) {
 
-        LevenshteinDistance leven = new LevenshteinDistance();
-        Integer distance = leven.apply("title", "tit");
-        System.out.println(distance);
+        String description = "todoJuntoSinSentido Title of movie or ti series Title";
+
+
+        System.out.println(posTagging(description));
 
 
 
