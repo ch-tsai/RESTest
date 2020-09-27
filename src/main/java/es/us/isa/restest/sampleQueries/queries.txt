@@ -224,5 +224,16 @@ FILTER regex(str(?predicate), 'title', 'i')
 }
 ORDER BY ?predicate
 
+################################### Predicados #############################################
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT distinct ?predicate where {
+   ?predicate a rdf:Property
+   OPTIONAL { ?predicate rdfs:label ?label }
+
+   FILTER regex(str(?predicate), "pages", 'i')
+
+}   order by strlen(str(?predicate))
 
 

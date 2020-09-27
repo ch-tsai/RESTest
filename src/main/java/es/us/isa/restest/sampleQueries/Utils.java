@@ -5,10 +5,8 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.sparql.engine.http.QueryEngineHTTP;
 import io.swagger.v3.oas.models.parameters.Parameter;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static es.us.isa.restest.sampleQueries.GenerateSPARQLFilters.generateSPARQLFilters;
 
@@ -16,9 +14,12 @@ public class Utils {
 
     // Execute a Query
     // TODO: Remove duplicates after filtering (datatype)
-    public static void executeSPARQLQuery(String szQuery, String szEndpoint)
+    // Returns List<Map<ParameterName, ParameterValue>>
+    public static List<Map<String, String>> executeSPARQLQuery(String szQuery, String szEndpoint)
             throws Exception
     {
+        List<Map<String, String>> res = new ArrayList<>();
+
         // Create a Query with the given String
         Query query = QueryFactory.create(szQuery);
 
@@ -37,12 +38,17 @@ public class Utils {
             // Get Result
             QuerySolution qs = rs.next();
 
+            // Remove duplicates from QuerySolution
+
             // Get Variable Names
             Iterator<String> itVars = qs.varNames();
 
             // Count
             iCount++;
             System.out.println("\nResult " + iCount + ": ");
+
+            // Create Map of entry
+            Map<String, String> r = new HashMap<>();
 
             // Display Result
             while (itVars.hasNext()) {
@@ -59,9 +65,20 @@ public class Utils {
                     szValString = szVal.asLiteral().getString();
                 }
 
+                r.put(szVar, szValString);
+
                 System.out.println("[" + szVar + "]: " + szValString);
             }
+
+            // Add map to res
+            res.add(r);
         }
+
+        // Remove duplicates from
+//        List<Map<String, String>> resWithoutDuplicates = res.stream().distinct().collect(Collectors.toList());
+
+
+        return res;
     }
 
     // Generate the Query given two lists of Strings
