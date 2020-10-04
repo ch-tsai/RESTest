@@ -16,7 +16,7 @@ public class Predicates {
     // TODO: Add limit
     // TODO: Wordnet/Description in case the function returns no results
     // TODO: size()=0 exception
-    public static Map<TestParameter, List<String>> getPredicates(List<TestParameter> parameters){
+    public static Map<TestParameter, List<String>> getPredicates(Set<TestParameter> parameters){
         Map<TestParameter, List<String>> res = new HashMap<>();
 
         for(TestParameter p: parameters){

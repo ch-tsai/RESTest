@@ -7,7 +7,6 @@ import org.apache.jena.sparql.engine.http.QueryEngineHTTP;
 import io.swagger.v3.oas.models.parameters.Parameter;
 
 import java.net.URI;
-import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -18,10 +17,11 @@ public class Utils {
     // Execute a Query
     // TODO: Remove duplicates after filtering (datatype)
     // Returns List<Map<ParameterName, ParameterValue>>
-    public static List<Map<String, String>> executeSPARQLQuery(String szQuery, String szEndpoint)
+    // Returns Map<ParameterName, Set<ParameterValue>>
+    public static Map<String, Set<String>> executeSPARQLQuery(String szQuery, String szEndpoint)
             throws Exception
     {
-        List<Map<String, String>> res = new ArrayList<>();
+        Map<String, Set<String>> res = new HashMap<>();
 
         // Create a Query with the given String
         Query query = QueryFactory.create(szQuery);
@@ -33,34 +33,30 @@ public class Utils {
         // Set Timeout
         ((QueryEngineHTTP)qexec).addParam("timeout", "10000");
 
-
         // Execute Query
-        int iCount = 0;
+//        int iCount = 0;
         ResultSet rs = qexec.execSelect();
+
+        rs.getResultVars().stream().forEach(x->res.put(x, new HashSet<String>()));
         while (rs.hasNext()) {
             // Get Result
             QuerySolution qs = rs.next();
 
-            // Remove duplicates from QuerySolution
-
             // Get Variable Names
             Iterator<String> itVars = qs.varNames();
 
+
             // Count
-            iCount++;
-            System.out.println("\nResult " + iCount + ": ");
+//            iCount++;
+//            System.out.println("\nResult " + iCount + ": ");
 
-            // Create Map of entry
-            Map<String, String> r = new HashMap<>();
-
-            // Display Result
             while (itVars.hasNext()) {
                 String szVar = itVars.next();
 
                 // Gets an RDF node
                 RDFNode szVal = qs.get(szVar);
                 String szValString = "";
-                
+
                 if(szVal.isURIResource()){
                     szValString = szVal.asResource().getLocalName().replace("_", " ").trim();
 
@@ -74,13 +70,11 @@ public class Utils {
                     szValString = segments[segments.length-1].replace("_", " ");
                 }
 
-                r.put(szVar, szValString);
+                res.get(szVar).add(szValString);
 
-                System.out.println("[" + szVar + "]: " + szValString);
+//                System.out.println("[" + szVar + "]: " + szValString);
             }
 
-            // Add map to res
-            res.add(r);
         }
 
         return res;
