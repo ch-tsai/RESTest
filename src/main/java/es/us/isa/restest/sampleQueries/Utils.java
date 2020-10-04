@@ -1,10 +1,13 @@
 package es.us.isa.restest.sampleQueries;
 
+import es.us.isa.restest.configuration.pojos.TestParameter;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.sparql.engine.http.QueryEngineHTTP;
 import io.swagger.v3.oas.models.parameters.Parameter;
 
+import java.net.URI;
+import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -57,12 +60,18 @@ public class Utils {
                 // Gets an RDF node
                 RDFNode szVal = qs.get(szVar);
                 String szValString = "";
-
+                
                 if(szVal.isURIResource()){
                     szValString = szVal.asResource().getLocalName().replace("_", " ").trim();
 
                 }else{
                     szValString = szVal.asLiteral().getString();
+                }
+
+                if(szValString.trim().equals("")){
+                    URI uri = new URI(szVal.toString());
+                    String[] segments = uri.getPath().split("/");
+                    szValString = segments[segments.length-1].replace("_", " ");
                 }
 
                 r.put(szVar, szValString);
@@ -74,67 +83,13 @@ public class Utils {
             res.add(r);
         }
 
-        // Remove duplicates from
-//        List<Map<String, String>> resWithoutDuplicates = res.stream().distinct().collect(Collectors.toList());
-
-
         return res;
     }
 
-    // Generate the Query given two lists of Strings
-//    public static String generateQuery(List<String> requiredParameters, List<String> optionalParameters){
-//        String queryString = "";
-//
-//        // Add prefixes
-//        queryString = queryString + "PREFIX dbo: <http://dbpedia.org/ontology/> \n";
-//        queryString = queryString + "PREFIX dbp: <http://dbpedia.org/property/> \n";
-//        queryString = queryString + "PREFIX dbr: <http://dbpedia.org/resource/> \n";
-//
-//        List<String> allParameters = new ArrayList<>();
-//        allParameters.addAll(requiredParameters);
-//        allParameters.addAll(optionalParameters);
-//
-//        String randomString = generateRandomString(allParameters);
-//        String parametersString = generateParametersString(allParameters);
-//
-//        // First line
-//        queryString = queryString + "Select distinct " + parametersString +"  where { \n\n";
-//
-//        // Required parameters
-//        int requiredSize = requiredParameters.size();
-//        if(requiredSize>0){
-//
-//            queryString = queryString + "?" + randomString;
-//
-//            for(int i=0; i<= (requiredSize-2); i++){
-//                String currentParameter = requiredParameters.get(i);
-//                queryString = queryString + "\tdbo:" + currentParameter + "|dbp:" + currentParameter + " ?" + currentParameter + " ; \n";
-//            }
-//            String lastParameter = requiredParameters.get(requiredSize - 1);
-//            queryString = queryString + "\tdbo:" + lastParameter + "|dbp:" + lastParameter + " ?" + lastParameter + " . \n\n";
-//        }
-//
-//        // Optional parameters
-//        int optionalSize = optionalParameters.size();
-//        if(optionalSize >0){
-//            for(int i = 0; i<= (optionalSize-1); i++){
-//                String currentParameter = optionalParameters.get(i);
-//                queryString = queryString + "\tOPTIONAL { ?" + randomString + " " + "dbo:" + currentParameter +"|dbp:" + currentParameter + " ?" + currentParameter + " }\n";
-//
-//            }
-//
-//        }
-//
-//
-//        // Close query
-//        queryString = queryString + "} LIMIT 20 \n";
-//
-//        return queryString;
-//
-//    }
 
-//    // Generate the Query given a list of Parameters
-//    public static String generateQuery(List<Parameter> parameters) {
+
+    // Generate the Query given a Map of parameters and their respective predicates
+//    public static String generateQuery(Map<Parameter, List<String>> parametersWithPredicates) {
 //        String queryString = "";
 //        String filters = "";
 //
@@ -147,7 +102,7 @@ public class Utils {
 //        List<Parameter> optionalParameters = new ArrayList<>();
 //        List<String> allParametersName = new ArrayList<>();
 //
-//        for (Parameter p : parameters) {
+//        for (Parameter p : parametersWithPredicates.keySet()) {
 //            allParametersName.add(p.getName());
 //            if (p.getRequired()) {
 //                requiredParameters.add(p);
@@ -173,8 +128,12 @@ public class Utils {
 //                // Add required parameter to query
 //                Parameter currentParameter = requiredParameters.get(i);
 //                String currentParameterName = currentParameter.getName();
-//                queryString = queryString + "\tdbo:" + currentParameterName + "|dbp:" +
-//                        currentParameterName + " ?" + currentParameterName + " ; \n";
+//
+//                // Predicates
+//                List<String> predicates = parametersWithPredicates.get(currentParameter);
+//                String predicatesString = getPredicatesString(predicates);
+//
+//                queryString = queryString + "\t" + predicatesString + " ?" + currentParameterName + " ; \n";
 //
 //                // TODO: Test with multiple parameters
 //                filters = filters + generateSPARQLFilters(currentParameter);
@@ -182,8 +141,12 @@ public class Utils {
 //            // TODO: Test with multiple parameters
 //            Parameter lastParameter = requiredParameters.get(requiredSize - 1);
 //            String lastParameterName = lastParameter.getName();
-//            queryString = queryString + "\tdbo:" + lastParameterName + "|dbp:" +
-//                    lastParameterName + " ?" + lastParameterName + " . \n\n";
+//
+//            // Predicates
+//            List<String> predicates = parametersWithPredicates.get(lastParameter);
+//            String predicatesString = getPredicatesString(predicates);
+//
+//            queryString = queryString + "\t" + predicatesString + " ?" + lastParameterName + " . \n\n";
 //
 //            filters = filters + generateSPARQLFilters(lastParameter);
 //        }
@@ -200,8 +163,11 @@ public class Utils {
 //                String optionalFilter = generateSPARQLFilters(currentParameter);
 //
 //                // TODO: Test with multiple optional parameters
-//                queryString = queryString + "\tOPTIONAL { ?" + randomString + " " + "dbo:" + currentParameterName
-//                        + "|dbp:" + currentParameterName + " ?" + currentParameterName +  " . " + optionalFilter + " }\n";
+//                // Predicates
+//                List<String> predicates = parametersWithPredicates.get(currentParameter);
+//                String predicatesString = getPredicatesString(predicates);
+//
+//                queryString = queryString + "\tOPTIONAL { ?" + randomString + " " + predicatesString + " ?" + currentParameterName +  " . " + optionalFilter + " }\n";
 //
 //            }
 //
@@ -217,9 +183,7 @@ public class Utils {
 //
 //    }
 
-
-    // Generate the Query given a Map of parameters and their respective predicates
-    public static String generateQuery(Map<Parameter, List<String>> parametersWithPredicates) {
+    public static String generateQuery(Map<TestParameter, List<String>> parametersWithPredicates) {
         String queryString = "";
         String filters = "";
 
@@ -228,18 +192,11 @@ public class Utils {
         queryString = queryString + "PREFIX dbp: <http://dbpedia.org/property/> \n";
         queryString = queryString + "PREFIX dbr: <http://dbpedia.org/resource/> \n";
 
-        List<Parameter> requiredParameters = new ArrayList<>();
-        List<Parameter> optionalParameters = new ArrayList<>();
-        List<String> allParametersName = new ArrayList<>();
+        List<TestParameter> allParameters = new ArrayList<>(parametersWithPredicates.keySet());
+        List<String> allParametersName = allParameters.stream()
+                .map(x-> x.getName())
+                .collect(Collectors.toList());
 
-        for (Parameter p : parametersWithPredicates.keySet()) {
-            allParametersName.add(p.getName());
-            if (p.getRequired()) {
-                requiredParameters.add(p);
-            } else {
-                optionalParameters.add(p);
-            }
-        }
 
         // Random String and parameter string
         String randomString = generateRandomString(allParametersName);
@@ -249,14 +206,14 @@ public class Utils {
         queryString = queryString + "Select distinct " + parametersString + "  where { \n\n";
 
         // Required parameters
-        int requiredSize = requiredParameters.size();
+        int requiredSize = allParameters.size();
         if (requiredSize > 0) {
 
             queryString = queryString + "?" + randomString;
 
             for (int i = 0; i <= (requiredSize - 2); i++) {
                 // Add required parameter to query
-                Parameter currentParameter = requiredParameters.get(i);
+                TestParameter currentParameter = allParameters.get(i);
                 String currentParameterName = currentParameter.getName();
 
                 // Predicates
@@ -266,10 +223,11 @@ public class Utils {
                 queryString = queryString + "\t" + predicatesString + " ?" + currentParameterName + " ; \n";
 
                 // TODO: Test with multiple parameters
-                filters = filters + generateSPARQLFilters(currentParameter);
+                // TODO: IMPLEMENT
+//                filters = filters + generateSPARQLFilters(currentParameter);
             }
             // TODO: Test with multiple parameters
-            Parameter lastParameter = requiredParameters.get(requiredSize - 1);
+            TestParameter lastParameter = allParameters.get(requiredSize - 1);
             String lastParameterName = lastParameter.getName();
 
             // Predicates
@@ -278,29 +236,8 @@ public class Utils {
 
             queryString = queryString + "\t" + predicatesString + " ?" + lastParameterName + " . \n\n";
 
-            filters = filters + generateSPARQLFilters(lastParameter);
-        }
-
-        // Optional parameters
-        int optionalSize = optionalParameters.size();
-        if (optionalSize > 0) {
-            for (int i = 0; i <= (optionalSize - 1); i++) {
-                // Add optional parameter to query
-                Parameter currentParameter = optionalParameters.get(i);
-                String currentParameterName = currentParameter.getName();
-
-                // Filters of optional parameter
-                String optionalFilter = generateSPARQLFilters(currentParameter);
-
-                // TODO: Test with multiple optional parameters
-                // Predicates
-                List<String> predicates = parametersWithPredicates.get(currentParameter);
-                String predicatesString = getPredicatesString(predicates);
-
-                queryString = queryString + "\tOPTIONAL { ?" + randomString + " " + predicatesString + " ?" + currentParameterName +  " . " + optionalFilter + " }\n";
-
-            }
-
+            // TODO: IMPLEMENT
+//            filters = filters + generateSPARQLFilters(lastParameter);
         }
 
         // Add filters

@@ -29,34 +29,34 @@ public class Main {
 
         List<Parameter> parameters = operation.getParameters();
 
-        Map<Parameter, List<String>> parametersWithPredicates = getPredicates(parameters);
-
-
-        String queryString = generateQuery(parametersWithPredicates);
-
-        System.out.println(queryString);
-
-        // DBPedia Endpoint
-        String szEndpoint = "http://dbpedia.org/sparql";
-
-        List<Map<String,String>> result = new ArrayList<>();
-
-        // Query DBPedia
-        try{
-            result = executeSPARQLQuery(queryString, szEndpoint);
-        }catch(Exception ex){
-            System.err.println(ex);
-        }
-
-        int i = 1;
-        for(Map<String, String> entry: result){
-            System.out.println("Result " + i + ": ");
-            for(String parameterName: entry.keySet()){
-                System.out.println("[" + parameterName + "]: " + entry.get(parameterName));
-            }
-            i++;
-            System.out.println("\n");
-        }
+//        Map<Parameter, List<String>> parametersWithPredicates = getPredicates(parameters);
+//
+//
+//        String queryString = generateQuery(parametersWithPredicates);
+//
+//        System.out.println(queryString);
+//
+//        // DBPedia Endpoint
+//        String szEndpoint = "http://dbpedia.org/sparql";
+//
+//        List<Map<String,String>> result = new ArrayList<>();
+//
+//        // Query DBPedia
+//        try{
+//            result = executeSPARQLQuery(queryString, szEndpoint);
+//        }catch(Exception ex){
+//            System.err.println(ex);
+//        }
+//
+//        int i = 1;
+//        for(Map<String, String> entry: result){
+//            System.out.println("Result " + i + ": ");
+//            for(String parameterName: entry.keySet()){
+//                System.out.println("[" + parameterName + "]: " + entry.get(parameterName));
+//            }
+//            i++;
+//            System.out.println("\n");
+//        }
 
     }
 }

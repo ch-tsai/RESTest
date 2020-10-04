@@ -19,6 +19,7 @@ public class NLPUtils {
     private static String stopwordsPath = "src/main/java/es/us/isa/restest/sampleQueries/englishStopWords.txt";
 
     // With Comparator
+    // TODO: Check |-
     public static List<String> posTagging(String description, String name){
         String res = description.toLowerCase().trim();
         Properties props = new Properties();
@@ -97,6 +98,17 @@ public class NLPUtils {
             e.printStackTrace();
         }
         return lines;
+    }
+
+    public static String splitCamelAndSnakeCase(String s) {
+        return s.replaceAll("_"," ").replaceAll(
+                String.format("%s|%s|%s",
+                        "(?<=[A-Z])(?=[A-Z][a-z])",
+                        "(?<=[^A-Z])(?=[A-Z])",
+                        "(?<=[A-Za-z])(?=[^A-Za-z])"
+                ),
+                " "
+        );
     }
 
 }

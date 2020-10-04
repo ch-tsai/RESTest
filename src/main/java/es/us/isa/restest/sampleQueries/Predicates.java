@@ -1,13 +1,12 @@
 package es.us.isa.restest.sampleQueries;
 import io.swagger.v3.oas.models.parameters.Parameter;
-import org.apache.jena.base.Sys;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.*;
 import org.apache.jena.sparql.engine.http.QueryEngineHTTP;
-import org.eclipse.xtext.serializer.sequencer.ISyntacticSequencer;
-import org.joda.time.format.ISOPeriodFormat;
+
 
 import java.util.*;
+import es.us.isa.restest.configuration.pojos.TestParameter;
 
 public class Predicates {
 
@@ -17,10 +16,10 @@ public class Predicates {
     // TODO: Add limit
     // TODO: Wordnet/Description in case the function returns no results
     // TODO: size()=0 exception
-    public static Map<Parameter, List<String>> getPredicates(List<Parameter> parameters){
-        Map<Parameter, List<String>> res = new HashMap<>();
+    public static Map<TestParameter, List<String>> getPredicates(List<TestParameter> parameters){
+        Map<TestParameter, List<String>> res = new HashMap<>();
 
-        for(Parameter p: parameters){
+        for(TestParameter p: parameters){
             List<String> predicates = getPredicatesOfSingleParameter(p.getName());
             res.put(p, predicates);
         }
